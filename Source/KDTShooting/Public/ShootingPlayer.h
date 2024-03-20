@@ -38,11 +38,19 @@ public:
 	FVector2D inputDir;
 
 	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UInputMappingContext* imc_myMapping;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
 	class UInputAction* ia_move;
 
 	UPROPERTY(EditAnywhere, Category="MySettings")
-	class UInputMappingContext* imc_myMapping;
+	class UInputAction* ia_fire;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	TSubclassOf<class ABulletActor> bulletFactory;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UArrowComponent* fireLocation;
 
 private:
 	UFUNCTION(BlueprintCallable)
@@ -50,5 +58,8 @@ private:
 
 	UFUNCTION()
 	void SetInputDirection(const FInputActionValue& value);
+
+	UFUNCTION()
+	void Fire(const FInputActionValue& value);
 };
 

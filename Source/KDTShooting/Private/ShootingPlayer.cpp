@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "BulletActor.h"
+#include "Components/ArrowComponent.h"
 
 
 AShootingPlayer::AShootingPlayer()
@@ -29,6 +31,12 @@ AShootingPlayer::AShootingPlayer()
 
 	// 2-2. 메시 컴포넌트의 위치를 z축으로 -50만큼 내린다.
 	meshComp->SetRelativeLocation(FVector(0, 0, -50));
+
+	// 3. 총구 표시용 화살표 컴포넌트를 생성한다.
+	fireLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow Component"));
+	fireLocation->SetupAttachment(boxComp);
+	fireLocation->SetRelativeLocation(FVector(0, 0, 100));
+	fireLocation->SetRelativeRotation(FRotator(90, 0, 0));
 }
 
 void AShootingPlayer::BeginPlay()
@@ -84,6 +92,7 @@ void AShootingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		// 함수를 인풋 컴포넌트에 연결한다.
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Triggered, this, &AShootingPlayer::SetInputDirection);
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Completed, this, &AShootingPlayer::SetInputDirection);
+		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::Fire);
 	}
 }
 
@@ -102,6 +111,18 @@ void AShootingPlayer::SetInputDirection(const FInputActionValue& value)
 {
 	// 사용자의 실제 입력 값을 inputDir 변수에 저장한다.
 	inputDir = value.Get<FVector2D>();
+}
+
+void AShootingPlayer::Fire(const FInputActionValue& value)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Click Fire!!!"));
+
+	// 충돌 옵션 : 무조건 내가 설정한 위치에서 생성되어야 한다.
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	// 총알 액터를 위쪽에 생성(Spawn)한다.
+	GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
 }
 
 

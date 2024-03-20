@@ -17,7 +17,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UBoxComponent* boxComp;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UStaticMeshComponent* meshComp;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	float speed = 1000;
 };
