@@ -37,8 +37,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MySettings")
 	FVector2D inputDir;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UInputAction* ia_move;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UInputMappingContext* imc_myMapping;
+
+
 private:
 	UFUNCTION(BlueprintCallable)
-	void Move(FVector direction, float deltaTime);
+	void Move(FVector direction , float deltaTime);
+
+	UFUNCTION()
+	void SetInputDirection(const FInputActionValue& value);
 };
 
