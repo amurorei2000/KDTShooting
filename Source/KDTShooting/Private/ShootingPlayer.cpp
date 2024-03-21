@@ -42,7 +42,7 @@ AShootingPlayer::AShootingPlayer()
 void AShootingPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	//UE_LOG(LogTemp, Warning, TEXT("Call BeginPlay Function"));
 
 	// EnhacedInputSystem에서 입력 맵핑 콘텍스트 파일을 언리얼 엔진 시스템에 로드하기
