@@ -17,11 +17,29 @@ AEnemyActor::AEnemyActor()
 	SetRootComponent(boxComp);
 	boxComp->SetBoxExtent(FVector(50));
 
+	// 박스 컴포넌트의 콜리전 설정
+	// 응답 타입: Query 타입
+	boxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	
+	// 오브젝트 타입(채널): Enemy
+	boxComp->SetCollisionObjectType(ECC_GameTraceChannel2);
+	
+	// 응답 처리: Player, Bullet 채널에 대해서 overlap으로 설정한다. 다른 채널에 대해서는 ignore로 처리한다.
+	boxComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	boxComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
+	boxComp->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Overlap);
+
+	boxComp->SetGenerateOverlapEvents(true);
+	
+	// 히트 이벤트(Block) 발생을 가능하게 설정한다.
+	//boxComp->SetNotifyRigidBodyCollision(true);
+
+
 	// 스테틱 메시 컴포넌트를 박스 컴포넌트의 자식 컴포넌트로 생성 및 등록한다.
 	meshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh Component"));
 	meshComp->SetupAttachment(boxComp);
 	meshComp->SetRelativeLocation(FVector(0, 0, -50));
-
+	meshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AEnemyActor::BeginPlay()
@@ -50,8 +68,15 @@ void AEnemyActor::BeginPlay()
 		AShootingPlayer* player = FindPlayer_Iterator();
 
 		// 2. 내가 플레이어를 바라보는 방향 벡터를 구해서 moveDir 변수에 넣는다.
-		FVector lookDirection = player->GetActorLocation() - GetActorLocation();
-		moveDir = lookDirection.GetSafeNormal();
+		if (player != nullptr)
+		{
+			FVector lookDirection = player->GetActorLocation() - GetActorLocation();
+			moveDir = lookDirection.GetSafeNormal();
+		}
+		else
+		{
+			moveDir = GetActorForwardVector();
+		}
 	}
 
 	//// 현재 월드의 모든 액터(AActor*)의 이름을 UE_LOG로 출력해보세요.
@@ -65,6 +90,10 @@ void AEnemyActor::BeginPlay()
 	//		//UE_LOG(LogTemp, Warning, TEXT("DName: %s"), *foundActor->GetActorNameOrLabel());
 	//	}
 	//}
+
+	// 오버랩 이벤트 함수를 BoxComponent의 beginOverlap 델리게이트에 연결한다.
+	boxComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyActor::OnOverlapPlayer);
+
 }
 
 void AEnemyActor::Tick(float DeltaTime)
@@ -100,6 +129,30 @@ AShootingPlayer* AEnemyActor::FindPlayer_Iterator()
 		players.Add(*player);
 	}
 
-	return players[0];
+	// players 배열에 1개라도 들어간 값이 있다면 그 값들 중에 0번을 반환하고...
+	if (players.Num() > 0)
+	{
+		return players[0];
+	}
+	// 아무것도 없으면 nullptr를 반환한다.
+	else
+	{
+		return nullptr;
+	}
+}
+
+void AEnemyActor::OnOverlapPlayer(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// 만일, 부딪힌 대상이 플레이어라면...
+	AShootingPlayer* player = Cast<AShootingPlayer>(OtherActor);
+
+	if (player != nullptr)
+	{
+		// 플레이어를 제거한다.
+		player->Destroy();
+
+		// 나도 제거한다.
+		Destroy();
+	}
 }
 

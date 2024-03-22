@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BulletActor.generated.h"
 
+
 UCLASS()
 class KDTSHOOTING_API ABulletActor : public AActor
 {
@@ -29,4 +30,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	float speed = 1000;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UParticleSystem* explosionFX;
+
+private:
+	UFUNCTION()
+	void OnOverlapEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 };

@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "BulletActor.h"
 #include "Components/ArrowComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 AShootingPlayer::AShootingPlayer()
@@ -23,6 +24,9 @@ AShootingPlayer::AShootingPlayer()
 	// 1-2. 박스 컴포넌트의 크기를 50x50x50으로 설정한다.
 	boxComp->SetBoxExtent(FVector(50, 50, 50));
 
+	boxComp->SetCollisionProfileName(FName("PlayerPreset"));
+	
+
 	// 2. 스태틱 메시 컴포넌트를 생성한다.
 	meshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Component"));
 
@@ -31,6 +35,8 @@ AShootingPlayer::AShootingPlayer()
 
 	// 2-2. 메시 컴포넌트의 위치를 z축으로 -50만큼 내린다.
 	meshComp->SetRelativeLocation(FVector(0, 0, -50));
+
+	meshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// 3. 총구 표시용 화살표 컴포넌트를 생성한다.
 	fireLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow Component"));
@@ -123,6 +129,12 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 
 	// 총알 액터를 위쪽에 생성(Spawn)한다.
 	GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
+
+	// 총알 효과음을 출력한다.
+	if (fireSound != nullptr)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), fireSound);
+	}
 }
 
 

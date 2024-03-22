@@ -52,6 +52,10 @@ public:
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	class UArrowComponent* fireLocation;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class USoundBase* fireSound;
+
+
 private:
 	UFUNCTION(BlueprintCallable)
 	void Move(FVector direction , float deltaTime);
@@ -61,5 +65,6 @@ private:
 
 	UFUNCTION()
 	void Fire(const FInputActionValue& value);
+
 };
 
