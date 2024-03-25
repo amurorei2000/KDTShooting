@@ -7,6 +7,7 @@
 #include "BulletActor.generated.h"
 
 
+
 UCLASS()
 class KDTSHOOTING_API ABulletActor : public AActor
 {
@@ -14,6 +15,7 @@ class KDTSHOOTING_API ABulletActor : public AActor
 	
 public:	
 	ABulletActor();
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -33,6 +35,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	class UParticleSystem* explosionFX;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	class USoundBase* explosionSound;
 
 private:
 	UFUNCTION()

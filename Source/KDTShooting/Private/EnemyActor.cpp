@@ -28,6 +28,7 @@ AEnemyActor::AEnemyActor()
 	boxComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	boxComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 	boxComp->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Overlap);
+	boxComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 
 	boxComp->SetGenerateOverlapEvents(true);
 	
@@ -94,6 +95,8 @@ void AEnemyActor::BeginPlay()
 	// 오버랩 이벤트 함수를 BoxComponent의 beginOverlap 델리게이트에 연결한다.
 	boxComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyActor::OnOverlapPlayer);
 
+	// 생존 시간을 5초로 한다.
+	//SetLifeSpan(5.0f);
 }
 
 void AEnemyActor::Tick(float DeltaTime)

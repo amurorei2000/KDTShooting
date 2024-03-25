@@ -108,7 +108,9 @@ void AShootingPlayer::Move(FVector direction, float deltaTime)
 	// 이동 구성 요소 : 방향, 속력, 시간
 	FVector prevLocation = GetActorLocation();
 	FVector nextLocation = prevLocation + direction * speed * deltaTime;
-	SetActorLocation(nextLocation);
+	
+	// sweep 체크를 하면서 이동한다.
+	SetActorLocation(nextLocation, true);
 
 	//SetActorLocation(GetActorLocation() + direction * speed * deltaTime);
 }

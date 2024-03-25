@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "EnemyActor.h"
 
 
 ABulletActor::ABulletActor()
@@ -48,6 +49,8 @@ void ABulletActor::BeginPlay()
 	
 	// 오버랩 충돌 시에 발생할 이벤트와 함수를 연결한다.
 	boxComp->OnComponentBeginOverlap.AddDynamic(this, &ABulletActor::OnOverlapEnemy);
+	
+	//SetLifeSpan(5.0f);
 }
 
 void ABulletActor::Tick(float DeltaTime)
@@ -61,13 +64,22 @@ void ABulletActor::Tick(float DeltaTime)
 // 오버랩 이벤트가 발생할 때 실행할 함수
 void ABulletActor::OnOverlapEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Collide Actor name: %s"), *OtherActor->GetActorNameOrLabel());
+	//UE_LOG(LogTemp, Warning, TEXT("Collide Actor name: %s"), *OtherActor->GetActorNameOrLabel());
 
 	// 충돌한 상대방의 위치에 폭발 효과를 실행한다.
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), explosionFX, OtherActor->GetActorLocation(), FRotator::ZeroRotator);
+	
+	// 폭발 효과음을 재생한다.
+	if (explosionSound != nullptr)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), explosionSound);
+	}
 
-	// 부딪힌 상대방을 제거한다.
-	OtherActor->Destroy();
+	// 부딪힌 대상이 AEnemyActor 클래스라면 그 대상을 제거한다.
+	if (OtherActor->IsA<AEnemyActor>())
+	{
+		OtherActor->Destroy();
+	}
 
 	// 나도 제거한다.
 	Destroy();
