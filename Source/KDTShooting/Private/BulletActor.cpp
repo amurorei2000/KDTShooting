@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnemyActor.h"
+#include "EngineUtils.h"
 
 
 ABulletActor::ABulletActor()
@@ -51,6 +52,17 @@ void ABulletActor::BeginPlay()
 	boxComp->OnComponentBeginOverlap.AddDynamic(this, &ABulletActor::OnOverlapEnemy);
 	
 	//SetLifeSpan(5.0f);
+
+	// 카메라의 위치를 읽어온다.
+	for (TActorIterator<AActor> iter(GetWorld()); iter; ++iter)
+	{
+		AActor* foundActor = *iter;
+
+		if (foundActor->GetActorNameOrLabel().Contains("Camera"))
+		{
+			cameraLocation = foundActor->GetActorLocation();
+		}
+	}
 }
 
 void ABulletActor::Tick(float DeltaTime)
@@ -58,7 +70,17 @@ void ABulletActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	// p = p0 + vt
-	SetActorLocation(GetActorLocation() + GetActorForwardVector() * speed * DeltaTime);
+	FVector targetLoc = GetActorLocation() + GetActorForwardVector() * speed * DeltaTime;
+
+	// 만일, targetLoc의 z축 값이 +1000 이하이거나, -1000 이상일 때
+	if (targetLoc.Z <= cameraLocation.Z + 1000 && targetLoc.Z >= cameraLocation.Z -1000)
+	{
+		SetActorLocation(targetLoc);
+	}
+	else
+	{
+		Destroy();
+	}
 }
 
 // 오버랩 이벤트가 발생할 때 실행할 함수
