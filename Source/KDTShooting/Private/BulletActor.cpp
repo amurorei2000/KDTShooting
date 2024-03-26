@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnemyActor.h"
 #include "EngineUtils.h"
+#include "ShootingGameModeBase.h"
 
 
 ABulletActor::ABulletActor()
@@ -101,6 +102,22 @@ void ABulletActor::OnOverlapEnemy(UPrimitiveComponent* OverlappedComponent, AAct
 	if (OtherActor->IsA<AEnemyActor>())
 	{
 		OtherActor->Destroy();
+
+		// 게임 모드 클래스의 점수를 1점 추가한다.
+		// 1. 게임 모드 클래스에 접근한다.
+		AGameModeBase* gm = GetWorld()->GetAuthGameMode();
+		AShootingGameModeBase* myGM = Cast<AShootingGameModeBase>(gm);
+
+		if (myGM != nullptr)
+		{
+			// 2. AddPoint 함수를 호출한다.
+			// 2-1. 함수 호출 시에 매개변수에 1이라는 값을 전달한다.
+			myGM->AddPoint(1);
+
+			// 추가된 점수(현재 점수)를 출력해본다.
+			UE_LOG(LogTemp, Warning, TEXT("Current Point: %d"), myGM->GetCurrentPoint());
+		}
+
 	}
 
 	// 나도 제거한다.
