@@ -20,7 +20,13 @@ public:
 	UPROPERTY(EditAnywhere, Category ="MySettings")
 	TSubclassOf<class UMainWidget> mainWidget_BP;
 
+	UPROPERTY(EditAnywhere, Category ="MySettings")
+	TSubclassOf<class UGameOverWidget> gameOverWidget_BP;
+
+
 	void AddPoint(int32 count);
+	void ShowGameOverUI();
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -28,6 +34,6 @@ protected:
 
 private:
 	int32 point = 0;
-
-
+	class UMainWidget* mainUI;
+	class UGameOverWidget* gameOverUI;
 };

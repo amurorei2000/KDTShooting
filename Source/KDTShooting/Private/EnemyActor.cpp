@@ -7,6 +7,7 @@
 #include "ShootingPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "ShootingGameModeBase.h"
 
 AEnemyActor::AEnemyActor()
 {
@@ -153,6 +154,14 @@ void AEnemyActor::OnOverlapPlayer(UPrimitiveComponent* OverlappedComponent, AAct
 	{
 		// 플레이어를 제거한다.
 		player->Destroy();
+
+		// 게임 모드 클래스에 있는 ShowGameOverUI() 함수를 호출한다.
+		AShootingGameModeBase* gm = Cast<AShootingGameModeBase>(GetWorld()->GetAuthGameMode());
+
+		if (gm != nullptr)
+		{
+			gm->ShowGameOverUI();
+		}
 
 		// 나도 제거한다.
 		Destroy();
