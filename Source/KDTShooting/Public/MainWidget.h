@@ -17,4 +17,15 @@ class KDTSHOOTING_API UMainWidget : public UUserWidget
 public:
 	UPROPERTY(EditAnywhere, Category="MySettings", meta=(BindWidget))
 	class UTextBlock* text_currentPoint;
+
+	UPROPERTY(EditAnywhere, Category="MySettings", meta=(BindWidget))
+	class UTextBlock* text_currentPointText;
+
+	UPROPERTY(EditAnywhere, Category="MySettings", meta=(BindWidget))
+	class UTextBlock* text_bestPoint;
+
+	UPROPERTY(EditAnywhere, Category="MySettings", meta=(BindWidgetAnim), Transient)
+	class UWidgetAnimation* anim_currentScore;
+
+	void ShowCurrentPointText(bool bShow);
 };

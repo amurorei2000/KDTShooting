@@ -23,10 +23,17 @@ void AShootingGameModeBase::BeginPlay()
 
 			// text_currentPoint 변수의 text 값을 "0"으로 초기화 해준다.
 			mainUI->text_currentPoint->SetText(FText::FromString("0"));
+
+			// 파일에 있는 최고 점수 값을 읽어서 bestPoint 변수에 넣는다.
+			FString loadPoint;
+			FString fullPath = FPaths::ProjectContentDir() + FString("/Save/BestScore.txt");
+			FFileHelper::LoadFileToString(loadPoint, *fullPath);
+			bestPoint = FCString::Atoi(*loadPoint);
+
+			// bestPoint 변수의 값을 출력한다.
+			mainUI->text_bestPoint->SetText(FText::FromString(FString::Printf(TEXT("%d"), bestPoint)));
 		}
 	}
-
-	
 }
 
 
@@ -34,6 +41,16 @@ void AShootingGameModeBase::AddPoint(int32 count)
 {
 	// 현재 점수에서 count만큼을 누적한다.
 	point += count;
+
+	// 만일, 현재 점수가 기존의 최고 점수를 초과했다면...
+	if (point > bestPoint)
+	{
+		// 최고 점수를 현재 점수 값으로 갱신한다.
+		bestPoint = point;
+
+		// 갱신된 bestPoint 변수의 값을 위젯에 출력한다.
+		mainUI->text_bestPoint->SetText(FText::FromString(FString::Printf(TEXT("%d"), bestPoint)));
+	}
 
 	// Main Widget의 text_currentPoint 변수의 text 항목 값에 현재 포인트 값을 넣는다.
 
@@ -49,6 +66,8 @@ void AShootingGameModeBase::AddPoint(int32 count)
 		// 3. 찾은 위젯의 text_currentPoint변수의 멤버 변수인 text 항목에 접근해서 point 값을 넣는다.
 		mainUI->text_currentPoint->SetText(pointText);
 		
+		// 위젯 애니메이션을 실행한다.
+		mainUI->PlayAnimationForward(mainUI->anim_currentScore, 2);
 	}
 }
 
@@ -68,7 +87,10 @@ void AShootingGameModeBase::ShowGameOverUI()
 			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 
 			// 메인 UI는 화면에서 제거한다.
-			mainUI->RemoveFromParent();
+			//mainUI->RemoveFromParent();
+
+			// 메인 UI의 점수 표시를 화면에서 보이지 않게 숨겨놓는다.
+			mainUI->ShowCurrentPointText(false);
 
 			// 게임을 일시 정지 상태로 놓는다.
 			// 월드의 프레임 시간 배율을 0으로 바꾼다.
@@ -89,9 +111,27 @@ void AShootingGameModeBase::HideGameOverUI()
 	gameOverUI->RemoveFromParent();
 
 	// 메인 UI 위젯을 다시 생성한다.
+	// mainUI->AddToViewport();
+
+	// 메인 UI의 현재 점수를 다시 화면에 보이게한다.
+	mainUI->ShowCurrentPointText(true);
+}
+
+void AShootingGameModeBase::SaveBestScore()
+{
+	// 최고 점수를 파일(.txt)로 저장한다.
+	FString savePoint = FString::Printf(TEXT("%d"), bestPoint);
+	FString fullPath = FPaths::ProjectContentDir() + FString("/Save/BestScore.txt");
+
+	FFileHelper::SaveStringToFile(savePoint, *fullPath);
 }
 
 int32 AShootingGameModeBase::GetCurrentPoint()
 {
 	return point;
+}
+
+int32 AShootingGameModeBase::GetBestPoint()
+{
+	return bestPoint;
 }

@@ -16,6 +16,7 @@ class KDTSHOOTING_API AShootingGameModeBase : public AGameModeBase
 	
 public:
 	int32 GetCurrentPoint();
+	int32 GetBestPoint();
 
 	UPROPERTY(EditAnywhere, Category ="MySettings")
 	TSubclassOf<class UMainWidget> mainWidget_BP;
@@ -27,6 +28,7 @@ public:
 	void AddPoint(int32 count);
 	void ShowGameOverUI();
 	void HideGameOverUI();
+	void SaveBestScore();
 
 protected:
 	virtual void BeginPlay() override;
@@ -34,6 +36,7 @@ protected:
 
 private:
 	int32 point = 0;
+	int32 bestPoint = 0;
 	class UMainWidget* mainUI;
 	class UGameOverWidget* gameOverUI;
 };

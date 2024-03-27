@@ -161,6 +161,7 @@ void AEnemyActor::OnOverlapPlayer(UPrimitiveComponent* OverlappedComponent, AAct
 		if (gm != nullptr)
 		{
 			gm->ShowGameOverUI();
+			gm->SaveBestScore();
 		}
 
 		// 나도 제거한다.
