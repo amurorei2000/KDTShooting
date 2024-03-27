@@ -47,6 +47,9 @@ public:
 	class UInputAction* ia_fire;
 
 	UPROPERTY(EditAnywhere, Category="MySettings")
+	class UInputAction* ia_openMenu;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
 	TSubclassOf<class ABulletActor> bulletFactory;
 
 	UPROPERTY(EditAnywhere, Category="MySettings")
@@ -66,5 +69,7 @@ private:
 	UFUNCTION()
 	void Fire(const FInputActionValue& value);
 
+	UFUNCTION()
+	void ShowMenu(const FInputActionValue& value);
 };
 

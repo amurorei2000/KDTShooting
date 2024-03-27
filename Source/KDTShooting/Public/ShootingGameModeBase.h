@@ -26,7 +26,7 @@ public:
 
 	void AddPoint(int32 count);
 	void ShowGameOverUI();
-
+	void HideGameOverUI();
 
 protected:
 	virtual void BeginPlay() override;

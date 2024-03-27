@@ -9,6 +9,7 @@
 #include "BulletActor.h"
 #include "Components/ArrowComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "ShootingGameModeBase.h"
 
 
 AShootingPlayer::AShootingPlayer()
@@ -99,6 +100,7 @@ void AShootingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Triggered, this, &AShootingPlayer::SetInputDirection);
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Completed, this, &AShootingPlayer::SetInputDirection);
 		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::Fire);
+		enhancedInputComponent->BindAction(ia_openMenu, ETriggerEvent::Started, this, &AShootingPlayer::ShowMenu);
 	}
 }
 
@@ -139,4 +141,14 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 	}
 }
 
+void AShootingPlayer::ShowMenu(const FInputActionValue& value)
+{
+	// 게임 모드에 있는 ShowGameOverUI() 함수를 실행한다.
+	AShootingGameModeBase* gm = Cast<AShootingGameModeBase>(GetWorld()->GetAuthGameMode());
+
+	if (gm != nullptr)
+	{
+		gm->ShowGameOverUI();
+	}
+}
 

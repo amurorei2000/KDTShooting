@@ -14,6 +14,9 @@ class KDTSHOOTING_API UGameOverWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void NativeConstruct() override;
+
 public:
 	UPROPERTY(VisibleAnywhere, Category="MySettings", meta=(BindWidget))
 	class UButton* btn_restart;
@@ -21,4 +24,17 @@ public:
 	UPROPERTY(VisibleAnywhere, Category="MySettings", meta=(BindWidget))
 	class UButton* btn_quit;
 
+	UPROPERTY(VisibleAnywhere, Category="MySettings", meta=(BindWidget))
+	class UButton* btn_continue;
+
+
+private:
+	UFUNCTION()
+	void RestartGame();
+
+	UFUNCTION()
+	void QuitGame();
+
+	UFUNCTION()
+	void ContinueGame();
 };
