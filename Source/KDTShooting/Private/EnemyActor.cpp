@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "ShootingGameModeBase.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AEnemyActor::AEnemyActor()
 {
@@ -74,6 +75,11 @@ void AEnemyActor::BeginPlay()
 		{
 			FVector lookDirection = player->GetActorLocation() - GetActorLocation();
 			moveDir = lookDirection.GetSafeNormal();
+
+			// moveDir 방향을 바라보도록 회전한다.
+			// 앞축 : 고정 축, 뒷축: 맞출 축
+			FRotator newRot = UKismetMathLibrary::MakeRotFromZX(GetActorUpVector(), moveDir);
+			SetActorRotation(newRot);
 		}
 		else
 		{

@@ -8,6 +8,7 @@
 #include "EnemyActor.h"
 #include "EngineUtils.h"
 #include "ShootingGameModeBase.h"
+#include "ShootingPlayer.h"
 
 
 ABulletActor::ABulletActor()
@@ -84,6 +85,29 @@ void ABulletActor::Tick(float DeltaTime)
 	}
 }
 
+void ABulletActor::BulletActivate(bool bActivate)
+{
+	// 메시를 보이게 또는 안보이게 처리한다.
+	meshComp->SetVisibility(bActivate);
+
+	if (bActivate)
+	{
+		// 충돌 처리를 쿼리로 한다.
+		boxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+		// 속도를 1000으로 한다.
+		speed = 1000;
+	}
+	else
+	{
+		// 충돌 처리를 비활성화한다.
+		boxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		// 속도를 0으로 한다.
+		speed = 0;
+	}
+}
+
 // 오버랩 이벤트가 발생할 때 실행할 함수
 void ABulletActor::OnOverlapEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -121,6 +145,11 @@ void ABulletActor::OnOverlapEnemy(UPrimitiveComponent* OverlappedComponent, AAct
 	}
 
 	// 나도 제거한다.
-	Destroy();
+	//Destroy();
+	
+	// 총알을 비활성화한다.
+	BulletActivate(false);
+	// 플레이어의 bulletPool 변수에 자기 자신을 넣는다.
+	player->SetBulletPool(this);
 }
 

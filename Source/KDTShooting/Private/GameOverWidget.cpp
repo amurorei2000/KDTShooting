@@ -24,6 +24,7 @@ void UGameOverWidget::RestartGame()
 {
 	// Level을 다시 연다.
 	UGameplayStatics::OpenLevel(GetWorld(), FName("ShootingMap"));
+	
 }
 
 void UGameOverWidget::QuitGame()

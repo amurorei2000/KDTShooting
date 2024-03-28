@@ -39,6 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	class USoundBase* explosionSound;
 
+	class AShootingPlayer* player;
+
+
+	void BulletActivate(bool bActivate);
 
 private:
 	UFUNCTION()

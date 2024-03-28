@@ -45,9 +45,15 @@ void AKillZone::Terminate(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		//UE_LOG(LogTemp, Warning, TEXT("Bullet!!"));
 	//}
 
-	if (!OtherActor->IsA<AShootingPlayer>())
+	if (OtherActor->IsA<ABulletActor>())
+	{
+		ABulletActor* bullet = Cast<ABulletActor>(OtherActor);
+		bullet->BulletActivate(false);
+	}
+	else if (!OtherActor->IsA<AShootingPlayer>())
 	{
 		OtherActor->Destroy();
 	}
+	
 }
 

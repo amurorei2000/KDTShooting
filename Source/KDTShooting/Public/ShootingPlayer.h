@@ -58,8 +58,19 @@ public:
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	class USoundBase* fireSound;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	int32 poolSize = 5;
+
+	void SetBulletPool(class ABulletActor* bullet);
+
 
 private:
+	UPROPERTY(VisibleAnywhere, Category="MySettings", meta=(AllowPrivateAccess))
+	TArray<class ABulletActor*> bulletPool;
+
+
+
+
 	UFUNCTION(BlueprintCallable)
 	void Move(FVector direction , float deltaTime);
 

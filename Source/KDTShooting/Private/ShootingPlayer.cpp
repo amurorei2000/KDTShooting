@@ -35,8 +35,9 @@ AShootingPlayer::AShootingPlayer()
 	meshComp->SetupAttachment(boxComp);
 
 	// 2-2. 메시 컴포넌트의 위치를 z축으로 -50만큼 내린다.
-	meshComp->SetRelativeLocation(FVector(0, 0, -50));
-
+	//meshComp->SetRelativeLocation(FVector(0, 0, -50));
+	meshComp->SetRelativeRotation(FRotator(-90, 180, 0));
+	meshComp->SetRelativeScale3D(FVector(5.0f));
 	meshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// 3. 총구 표시용 화살표 컴포넌트를 생성한다.
@@ -72,6 +73,25 @@ void AShootingPlayer::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("Player Controller is Null!"));
 	}
 
+	// poolSize 수 만큼 총알(ABulletActor)을 생성한다.
+	// 1. poolsize만큼 반복한다.
+	for (int32 i = 0; i < poolSize; i++)
+	{
+		// 2. 총알 인스턴스를 생성한다.
+		FActorSpawnParameters params;
+		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ABulletActor* bullet = GetWorld()->SpawnActor<ABulletActor>(bulletFactory, FVector::ZeroVector, FRotator::ZeroRotator, params);
+
+		// 3. 총알을 비활성화한다.
+		bullet->BulletActivate(false);
+
+		// 4. 총알을 배열에 넣는다.
+		bulletPool.Add(bullet);
+
+		// 5. 총알에 있는 player 변수에 자기 자신을 참조시킨다.
+		bullet->player = this;
+	}
+
 }
 
 void AShootingPlayer::Tick(float DeltaTime)
@@ -83,6 +103,9 @@ void AShootingPlayer::Tick(float DeltaTime)
 	FVector moveDir = FVector(0, inputDir.X, inputDir.Y);
 
 	Move(moveDir, DeltaTime);
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1, FColor(255, 0, 0), FString("Test"));
+
 }
 
 void AShootingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -102,6 +125,11 @@ void AShootingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::Fire);
 		enhancedInputComponent->BindAction(ia_openMenu, ETriggerEvent::Started, this, &AShootingPlayer::ShowMenu);
 	}
+}
+
+void AShootingPlayer::SetBulletPool(class ABulletActor* bullet)
+{
+	bulletPool.Add(bullet);
 }
 
 void AShootingPlayer::Move(FVector direction, float deltaTime)
@@ -127,17 +155,43 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Click Fire!!!"));
 
+	// 1. Object pooling 기법을 사용하지 않을 때
 	// 충돌 옵션 : 무조건 내가 설정한 위치에서 생성되어야 한다.
-	FActorSpawnParameters params;
-	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	//FActorSpawnParameters params;
+	//params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	// 총알 액터를 위쪽에 생성(Spawn)한다.
-	GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
+	//GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
 
-	// 총알 효과음을 출력한다.
-	if (fireSound != nullptr)
+
+	// 2. Object pooling 기법을 사용했을 때
+	// bulletPool에 총알이 1발 이상 있는 것을 확인한다.
+	if (bulletPool.Num() > 0)
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), fireSound);
+		// 배열의 첫 번째 총알을 임시 변수로 받아놓는다.
+		ABulletActor* bullet = bulletPool[0];
+
+		// 꺼낸 총알의 위치를 fireLocation에 놓는다.
+		// 1. ArrowComponent 이용 시
+		//bullet->SetActorLocation(fireLocation->GetComponentLocation());
+		//bullet->SetActorRotation(fireLocation->GetComponentRotation());
+
+		// 2. Socket을 이용할 시
+		bullet->SetActorLocation(meshComp->GetSocketLocation(FName("FireSocket")));
+		bullet->SetActorRotation(meshComp->GetSocketRotation(FName("FireSocket")));
+
+		// 총알을 활성화한다.
+		bullet->BulletActivate(true);
+
+		// 배열의 첫 번째 요소를 제거한다.
+		bulletPool.RemoveAt(0);
+
+
+		// 총알 효과음을 출력한다.
+		if (fireSound != nullptr)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), fireSound);
+		}
 	}
 }
 
