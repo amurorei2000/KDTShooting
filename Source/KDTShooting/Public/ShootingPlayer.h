@@ -61,6 +61,9 @@ public:
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	int32 poolSize = 5;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	float interval = 50.0f;
+
 	void SetBulletPool(class ABulletActor* bullet);
 
 
@@ -69,7 +72,7 @@ private:
 	TArray<class ABulletActor*> bulletPool;
 
 	UPROPERTY(VisibleAnywhere, Category="MySettings", meta=(AllowPrivateAccess))
-	int32 fireCount = 1;
+	int32 fireCount = 8;
 	int32 maxFireCount = 5;
 
 	UFUNCTION(BlueprintCallable)
@@ -80,6 +83,9 @@ private:
 
 	UFUNCTION()
 	void Fire(const FInputActionValue& value);
+
+	UFUNCTION()
+	void FireCircle(const FInputActionValue& value);
 
 	UFUNCTION()
 	void ShowMenu(const FInputActionValue& value);

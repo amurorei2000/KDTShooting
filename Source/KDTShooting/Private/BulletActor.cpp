@@ -143,13 +143,15 @@ void ABulletActor::OnOverlapEnemy(UPrimitiveComponent* OverlappedComponent, AAct
 		}
 
 	}
-
-	// 나도 제거한다.
-	//Destroy();
 	
+	// 1. object pool 안쓸 때
+	// 나도 제거한다.
+	Destroy();
+	
+	// 2. object pool 쓸 때
 	// 총알을 비활성화한다.
-	BulletActivate(false);
+	//BulletActivate(false);
 	// 플레이어의 bulletPool 변수에 자기 자신을 넣는다.
-	player->SetBulletPool(this);
+	//player->SetBulletPool(this);
 }
 

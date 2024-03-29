@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "ShootingGameModeBase.h"
 #include "PowerItem.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/KismetMathLibrary.h>
 
 
 AShootingPlayer::AShootingPlayer()
@@ -126,7 +127,7 @@ void AShootingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		// 함수를 인풋 컴포넌트에 연결한다.
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Triggered, this, &AShootingPlayer::SetInputDirection);
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Completed, this, &AShootingPlayer::SetInputDirection);
-		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::Fire);
+		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::FireCircle);
 		enhancedInputComponent->BindAction(ia_openMenu, ETriggerEvent::Started, this, &AShootingPlayer::ShowMenu);
 	}
 }
@@ -161,16 +162,22 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 
 	// fireCount 수만큼 생성한다. = 반복
 	
+	for (int32 i = 0; i < fireCount; i++)
+	{
+		// 1. Object pooling 기법을 사용하지 않을 때
+		// 충돌 옵션 : 무조건 내가 설정한 위치에서 생성되어야 한다.
+		FActorSpawnParameters params;
+		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	// 1. Object pooling 기법을 사용하지 않을 때
-	// 충돌 옵션 : 무조건 내가 설정한 위치에서 생성되어야 한다.
-	
-	FActorSpawnParameters params;
-	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		// 총알 액터를 위쪽에 생성(Spawn)한다.
 
-	// 총알 액터를 위쪽에 생성(Spawn)한다.
-	GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
+		FVector firePos = fireLocation->GetComponentLocation();
+		float totalDistance = interval * (fireCount - 1);
+		float startLocation = firePos.Y + (totalDistance * -0.5f);
+		firePos.Y = startLocation + interval * i;
 
+		GetWorld()->SpawnActor<ABulletActor>(bulletFactory, firePos, fireLocation->GetComponentRotation(), params);
+	}
 
 	// 2. Object pooling 기법을 사용했을 때
 	// bulletPool에 총알이 1발 이상 있는 것을 확인한다.
@@ -201,6 +208,27 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 	//		UGameplayStatics::PlaySound2D(GetWorld(), fireSound);
 	//	}
 	//}
+}
+
+void AShootingPlayer::FireCircle(const FInputActionValue& value)
+{
+	for (int32 i = 0; i < fireCount; i++)
+	{
+		// 간격(각도) = 360 / fireCount
+		float degree = 360.0f / (float)fireCount;
+		float radian = FMath::DegreesToRadians(degree * i);
+
+		float yValue = FMath::Cos(radian) * 200;
+		float zValue = FMath::Sin(radian) * 200;
+
+		FVector circleVec = FVector(0, yValue, zValue);
+		FRotator newRot = UKismetMathLibrary::MakeRotFromZX(fireLocation->GetUpVector(), circleVec);
+		
+
+		FActorSpawnParameters params;
+		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		GetWorld()->SpawnActor<ABulletActor>(bulletFactory, GetActorLocation() + circleVec, newRot, params);
+	}
 }
 
 void AShootingPlayer::ShowMenu(const FInputActionValue& value)
