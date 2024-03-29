@@ -10,6 +10,7 @@
 #include "Components/ArrowComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "ShootingGameModeBase.h"
+#include "PowerItem.h"
 
 
 AShootingPlayer::AShootingPlayer()
@@ -92,6 +93,9 @@ void AShootingPlayer::BeginPlay()
 		bullet->player = this;
 	}
 
+	boxComp->OnComponentBeginOverlap.AddDynamic(this, &AShootingPlayer::OnOverlapItem);
+
+
 }
 
 void AShootingPlayer::Tick(float DeltaTime)
@@ -155,44 +159,48 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Click Fire!!!"));
 
+	// fireCount 수만큼 생성한다. = 반복
+	
+
 	// 1. Object pooling 기법을 사용하지 않을 때
 	// 충돌 옵션 : 무조건 내가 설정한 위치에서 생성되어야 한다.
-	//FActorSpawnParameters params;
-	//params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	// 총알 액터를 위쪽에 생성(Spawn)한다.
-	//GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
+	GetWorld()->SpawnActor<ABulletActor>(bulletFactory, fireLocation->GetComponentLocation(), fireLocation->GetComponentRotation(), params);
 
 
 	// 2. Object pooling 기법을 사용했을 때
 	// bulletPool에 총알이 1발 이상 있는 것을 확인한다.
-	if (bulletPool.Num() > 0)
-	{
-		// 배열의 첫 번째 총알을 임시 변수로 받아놓는다.
-		ABulletActor* bullet = bulletPool[0];
+	//if (bulletPool.Num() > 0)
+	//{
+	//	// 배열의 첫 번째 총알을 임시 변수로 받아놓는다.
+	//	ABulletActor* bullet = bulletPool[0];
 
-		// 꺼낸 총알의 위치를 fireLocation에 놓는다.
-		// 1. ArrowComponent 이용 시
-		//bullet->SetActorLocation(fireLocation->GetComponentLocation());
-		//bullet->SetActorRotation(fireLocation->GetComponentRotation());
+	//	// 꺼낸 총알의 위치를 fireLocation에 놓는다.
+	//	// 1. ArrowComponent 이용 시
+	//	//bullet->SetActorLocation(fireLocation->GetComponentLocation());
+	//	//bullet->SetActorRotation(fireLocation->GetComponentRotation());
 
-		// 2. Socket을 이용할 시
-		bullet->SetActorLocation(meshComp->GetSocketLocation(FName("FireSocket")));
-		bullet->SetActorRotation(meshComp->GetSocketRotation(FName("FireSocket")));
+	//	// 2. Socket을 이용할 시
+	//	bullet->SetActorLocation(meshComp->GetSocketLocation(FName("FireSocket")));
+	//	bullet->SetActorRotation(meshComp->GetSocketRotation(FName("FireSocket")));
 
-		// 총알을 활성화한다.
-		bullet->BulletActivate(true);
+	//	// 총알을 활성화한다.
+	//	bullet->BulletActivate(true);
 
-		// 배열의 첫 번째 요소를 제거한다.
-		bulletPool.RemoveAt(0);
+	//	// 배열의 첫 번째 요소를 제거한다.
+	//	bulletPool.RemoveAt(0);
 
 
-		// 총알 효과음을 출력한다.
-		if (fireSound != nullptr)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), fireSound);
-		}
-	}
+	//	// 총알 효과음을 출력한다.
+	//	if (fireSound != nullptr)
+	//	{
+	//		UGameplayStatics::PlaySound2D(GetWorld(), fireSound);
+	//	}
+	//}
 }
 
 void AShootingPlayer::ShowMenu(const FInputActionValue& value)
@@ -203,6 +211,28 @@ void AShootingPlayer::ShowMenu(const FInputActionValue& value)
 	if (gm != nullptr)
 	{
 		gm->ShowGameOverUI();
+	}
+}
+
+void AShootingPlayer::OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	APowerItem* item = Cast<APowerItem>(OtherActor);
+
+	if (item != nullptr)
+	{
+		// 충돌한 대상이 item이라면 fireCount를 1 증가시킨다.
+		fireCount++;
+		
+		// fireCount의 값이 maxFireCount를 넘기지 못하게 한다.
+		/*if (fireCount > maxFireCount)
+		{
+			fireCount = maxFireCount;
+		}*/
+
+		fireCount = FMath::Min(fireCount, maxFireCount);
+
+		// item을 제거한다.
+		item->Destroy();
 	}
 }
 

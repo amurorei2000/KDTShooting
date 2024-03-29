@@ -9,6 +9,7 @@
 #include "EngineUtils.h"
 #include "ShootingGameModeBase.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PowerItem.h"
 
 AEnemyActor::AEnemyActor()
 {
@@ -48,7 +49,6 @@ AEnemyActor::AEnemyActor()
 void AEnemyActor::BeginPlay()
 {
 	Super::BeginPlay();
-
 
 	// 0~99 사이의 임의의 숫자를 뽑았을 때, 그 숫자가 rate보다 크면
 	int32 num = FMath::RandRange(0, 99);
@@ -106,6 +106,12 @@ void AEnemyActor::BeginPlay()
 	//SetLifeSpan(5.0f);
 }
 
+void AEnemyActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// 확률에 따라 아이템을 생성한다.
+	CheckGenerateItem();
+}
+
 void AEnemyActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -148,6 +154,22 @@ AShootingPlayer* AEnemyActor::FindPlayer_Iterator()
 	else
 	{
 		return nullptr;
+	}
+}
+
+// 죽었을 때 아이템을 생성할지 여부 체크 함수
+void AEnemyActor::CheckGenerateItem()
+{
+	// 1~100 사이의 랜덤한 숫자를 뽑는다.
+	int32 number = FMath::RandRange(1, 100);
+
+	// 만일, 뽑은 숫자가 itemRate 보다 작으면...
+	if (number < itemRate)
+	{
+		// item_bp를 생성한다. (위치: 자기 자신의 위치, 회전: zero)
+		FActorSpawnParameters params;
+		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		APowerItem* item = GetWorld()->SpawnActor<APowerItem>(item_bp, GetActorLocation(), FRotator(0, 0, 0), params);
 	}
 }
 

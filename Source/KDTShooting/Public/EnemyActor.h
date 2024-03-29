@@ -17,6 +17,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 
@@ -32,11 +34,19 @@ public:
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	int32 rate = 60;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	int32 itemRate = 50;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	TSubclassOf<class APowerItem> item_bp;
+
 private:
 	FVector moveDir;
 
 	class AShootingPlayer* FindPlayer_BP();
 	class AShootingPlayer* FindPlayer_Iterator();
+
+	void CheckGenerateItem();
 
 	UFUNCTION()
 	void OnOverlapPlayer(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
