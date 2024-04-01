@@ -72,8 +72,10 @@ private:
 	TArray<class ABulletActor*> bulletPool;
 
 	UPROPERTY(VisibleAnywhere, Category="MySettings", meta=(AllowPrivateAccess))
-	int32 fireCount = 8;
+	int32 fireCount = 1;
+	
 	int32 maxFireCount = 5;
+	bool bCanFire = true;
 
 	UFUNCTION(BlueprintCallable)
 	void Move(FVector direction , float deltaTime);
@@ -92,5 +94,8 @@ private:
 
 	UFUNCTION()
 	void OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
 

@@ -44,6 +44,12 @@ AEnemyActor::AEnemyActor()
 	meshComp->SetupAttachment(boxComp);
 	meshComp->SetRelativeLocation(FVector(0, 0, -50));
 	meshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> enemyMesh(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/Drone_low.Drone_low'"));
+	if (enemyMesh.Succeeded())
+	{
+		meshComp->SetStaticMesh(enemyMesh.Object);
+	}
 }
 
 void AEnemyActor::BeginPlay()

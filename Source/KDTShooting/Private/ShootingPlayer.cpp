@@ -28,7 +28,7 @@ AShootingPlayer::AShootingPlayer()
 	boxComp->SetBoxExtent(FVector(50, 50, 50));
 
 	boxComp->SetCollisionProfileName(FName("PlayerPreset"));
-	
+
 
 	// 2. 스태틱 메시 컴포넌트를 생성한다.
 	meshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Component"));
@@ -42,17 +42,43 @@ AShootingPlayer::AShootingPlayer()
 	meshComp->SetRelativeScale3D(FVector(5.0f));
 	meshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	// 2-3. Static Mesh 파일을 StaticMeshComponent의 mesh 속성 값으로 할당한다.
+	// 리소스 파일 로드: ConstructorHelpers::FOjectFinder<클래스명> 변수명(TEXT("소스 경로"))
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> playerMesh(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/Spaceship_ARA.Spaceship_ARA'"));
+
+	// 리소스 파일을 로드하는데 성공했다면...
+	if (playerMesh.Succeeded())
+	{
+		// 해당 오브젝트 값을 컴포넌트에 할당한다.
+		meshComp->SetStaticMesh(playerMesh.Object);
+	}
+
+
 	// 3. 총구 표시용 화살표 컴포넌트를 생성한다.
 	fireLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow Component"));
 	fireLocation->SetupAttachment(boxComp);
 	fireLocation->SetRelativeLocation(FVector(0, 0, 100));
 	fireLocation->SetRelativeRotation(FRotator(90, 0, 0));
+
+	// 총알 블루프린트 파일(Class)을 bulletFactory 변수에 할당한다.
+	// 주의: 블루프린트 파일 경로(Find Reference)의 끝에 _C를 붙여준다.
+	static ConstructorHelpers::FClassFinder<ABulletActor> bulletBP(TEXT("/Script/Engine.Blueprint'/Game/Blueprints/BP_BulletActor.BP_BulletActor_C'"));
+
+	if (bulletBP.Succeeded())
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Bullet Load Success!"));
+		bulletFactory = bulletBP.Class;
+	}
+	else
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Bullet Load Failed!"));
+	}
 }
 
 void AShootingPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	//UE_LOG(LogTemp, Warning, TEXT("Call BeginPlay Function"));
 
 	// EnhacedInputSystem에서 입력 맵핑 콘텍스트 파일을 언리얼 엔진 시스템에 로드하기
@@ -95,14 +121,14 @@ void AShootingPlayer::BeginPlay()
 	}
 
 	boxComp->OnComponentBeginOverlap.AddDynamic(this, &AShootingPlayer::OnOverlapItem);
-
+	boxComp->OnComponentEndOverlap.AddDynamic(this, &AShootingPlayer::OnEndOverlap);
 
 }
 
 void AShootingPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 
 	// 사용자가 입력한 방향대로 이동을 하고 싶다.
 	FVector moveDir = FVector(0, inputDir.X, inputDir.Y);
@@ -127,7 +153,7 @@ void AShootingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		// 함수를 인풋 컴포넌트에 연결한다.
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Triggered, this, &AShootingPlayer::SetInputDirection);
 		enhancedInputComponent->BindAction(ia_move, ETriggerEvent::Completed, this, &AShootingPlayer::SetInputDirection);
-		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::FireCircle);
+		enhancedInputComponent->BindAction(ia_fire, ETriggerEvent::Started, this, &AShootingPlayer::Fire);
 		enhancedInputComponent->BindAction(ia_openMenu, ETriggerEvent::Started, this, &AShootingPlayer::ShowMenu);
 	}
 }
@@ -143,7 +169,7 @@ void AShootingPlayer::Move(FVector direction, float deltaTime)
 	// 이동 구성 요소 : 방향, 속력, 시간
 	FVector prevLocation = GetActorLocation();
 	FVector nextLocation = prevLocation + direction * speed * deltaTime;
-	
+
 	// sweep 체크를 하면서 이동한다.
 	SetActorLocation(nextLocation, true);
 
@@ -160,8 +186,13 @@ void AShootingPlayer::Fire(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Click Fire!!!"));
 
+	// 만일, bCanFire 값이 false라면 함수를 중단한다.
+	if (!bCanFire)
+	{
+		return;
+	}
+
 	// fireCount 수만큼 생성한다. = 반복
-	
 	for (int32 i = 0; i < fireCount; i++)
 	{
 		// 1. Object pooling 기법을 사용하지 않을 때
@@ -223,7 +254,7 @@ void AShootingPlayer::FireCircle(const FInputActionValue& value)
 
 		FVector circleVec = FVector(0, yValue, zValue);
 		FRotator newRot = UKismetMathLibrary::MakeRotFromZX(fireLocation->GetUpVector(), circleVec);
-		
+
 
 		FActorSpawnParameters params;
 		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -250,7 +281,7 @@ void AShootingPlayer::OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AA
 	{
 		// 충돌한 대상이 item이라면 fireCount를 1 증가시킨다.
 		fireCount++;
-		
+
 		// fireCount의 값이 maxFireCount를 넘기지 못하게 한다.
 		/*if (fireCount > maxFireCount)
 		{
@@ -261,6 +292,23 @@ void AShootingPlayer::OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AA
 
 		// item을 제거한다.
 		item->Destroy();
+	}
+	else
+	{
+		// 충돌한 액터의 이름에 "Trap"이라는 글자가 포함되어 있다면...
+		if (OtherActor->GetActorNameOrLabel().Contains("Trap"))
+		{
+			bCanFire = false;
+		}
+	}
+
+}
+
+void AShootingPlayer::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor->GetActorNameOrLabel().Contains("Trap"))
+	{
+		bCanFire = true;
 	}
 }
 
